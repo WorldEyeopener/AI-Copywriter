@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Privacy Policy — The Compounding Copywriter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow glow-1" aria-hidden="true"></div>
+    <div class="bg-glow glow-2" aria-hidden="true"></div>
+    <div class="bg-noise" aria-hidden="true"></div>
+  </div>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark" aria-hidden="true">◼︎</span>
+        <span class="brand-text">The Compounding Copywriter</span>
+      </a>
+      <nav class="nav-links">
+        <a href="./index.html#brief">Generate Brief</a>
+        <a class="pill" href="./terms.html">Terms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="card glass" style="padding:18px;">
+        <h2 style="margin-top:0;">Privacy Policy</h2>
+        <p class="muted tiny">Last updated: <strong>2026-01-22</strong></p>
+
+        <h3>1) Data minimization (only what’s needed)</h3>
+        <p class="muted">
+          We minimize the data collected. The form is designed to collect only what’s needed to write your copy:
+          offer, audience, placement, proof, constraints, plus an email for delivery/clarification.
+          Do not submit sensitive personal data.
+        </p>
+
+        <h3>2) AI disclosure</h3>
+        <p class="muted">
+          We use AI to draft content. You are responsible for verifying factual claims, numbers, testimonials,
+          and compliance before publishing. The form includes a required confirmation checkbox.
+        </p>
+
+        <h3>3) Retention & deletion</h3>
+        <p class="muted">
+          Retention rule: briefs and associated intake data are deleted after <strong>30 days</strong>,
+          unless a longer period is required for ongoing support, dispute handling, or by law.
+        </p>
+
+        <h3>4) How your data is used</h3>
+        <p class="muted">
+          Your inputs are used to generate an approved Markdown brief and produce copy deliverables based on your selected package.
+          If you provide a webhook, the approved brief may be transmitted to your automation workflow for processing and delivery.
+        </p>
+
+        <h3>5) Security measures</h3>
+        <p class="muted">
+          We take reasonable steps to protect data in transit and at rest where applicable.
+          If you automate email sending, prefer a reputable email provider and enable domain authentication:
+          <strong>SPF</strong>, <strong>DKIM</strong>, and <strong>DMARC</strong>.
+        </p>
+
+        <h3>6) Rate limiting / spam control</h3>
+        <p class="muted">
+          This form includes anti-spam measures (honeypot + client cooldown).
+          Optional controls include CAPTCHA (Cloudflare Turnstile) and blocking free email domains for B2B workflows.
+          For webhook processing, add server-side rate limiting and CAPTCHA token verification.
+        </p>
+
+        <h3>7) Your choices</h3>
+        <p class="muted">
+          You choose delivery format (Google Doc link and/or plain text email).
+          You can also omit optional fields (name, company, website) and still generate a brief.
+        </p>
+
+        <h3>8) Contact</h3>
+        <p class="muted">
+          For privacy questions or deletion requests, contact: <strong>eyeopenworlds0@gmail.com</strong>
+        </p>
+
+        <div class="divider"></div>
+
+        <p class="tiny muted"><a href="./index.html">← Back to home</a></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="muted">© <span id="year"></span> The Compounding Copywriter</div>
+      <div class="footer-links">
+        <a href="./terms.html">Terms</a>
+        <a href="./index.html">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+  </script>
+</body>
+</html>
