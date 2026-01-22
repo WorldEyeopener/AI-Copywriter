@@ -41,8 +41,12 @@ function setPackage(pkg) {
   const radio = $$('input[name="package"]', form).find(r => r.value === pkg);
   if (radio) radio.checked = true;
   renderPackageBlocks();
-  // Scroll into view for convenience
-  $("#brief").scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Scroll the form section into view if it exists
+  const briefEl = $("#brief");
+  if (briefEl && typeof briefEl.scrollIntoView === "function") {
+    briefEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function renderPackageBlocks() {
@@ -53,16 +57,15 @@ function renderPackageBlocks() {
 }
 
 /* ----------------------------
-   CAPTCHA (Cloudflare Turnstile)
-   Optional: if site key provided
+   CAPTCHA (Cloudflare Turnstile) - optional
 ---------------------------- */
 function ensureTurnstile(siteKey) {
   turnstileToken = "";
+  if (!captchaMount) return;
   captchaMount.innerHTML = "";
 
   if (!siteKey) return;
 
-  // Lazy load Turnstile script only when needed
   const existing = document.querySelector('script[data-turnstile="true"]');
   if (!existing) {
     const s = document.createElement("script");
@@ -73,7 +76,6 @@ function ensureTurnstile(siteKey) {
     s.onload = () => renderTurnstileWidget(siteKey);
     document.head.appendChild(s);
   } else {
-    // Script already present
     renderTurnstileWidget(siteKey);
   }
 }
@@ -86,19 +88,14 @@ function renderTurnstileWidget(siteKey) {
   try {
     window.turnstile.render("#ts-widget", {
       sitekey: siteKey,
-      callback: (token) => {
-        turnstileToken = token || "";
-      },
-      "error-callback": () => {
-        turnstileToken = "";
-      },
-      "expired-callback": () => {
-        turnstileToken = "";
-      }
+      callback: (token) => { turnstileToken = token || ""; },
+      "error-callback": () => { turnstileToken = ""; },
+      "expired-callback": () => { turnstileToken = ""; }
     });
-  } catch {
-    // If render fails, keep optional behavior: user can still use mailto fallback.
+  } catch (err) {
+    // Keep optional behavior: mailto fallback will still work
     captchaMount.innerHTML = `<div class="tiny muted">CAPTCHA could not be loaded. You can still use email fallback.</div>`;
+    console.warn('Turnstile render failed', err);
   }
 }
 
@@ -110,20 +107,14 @@ function getSelectedPackage() {
 }
 
 function getDeliveryFormats() {
-  return $$('input[name="deliveryFormat"]:checked', form).map(x => x.value);
+  return $$('input[name="deliveryFormat']:checked', form).map(x => x.value);
 }
 
 function readFormData() {
   const fd = new FormData(form);
-
-  // Convert to plain object
   const data = {};
   for (const [k, v] of fd.entries()) {
-    // Handle repeated fields (checkbox group)
-    if (k === "deliveryFormat") {
-      // handled separately below
-      continue;
-    }
+    if (k === "deliveryFormat") continue; // handled separately
     data[k] = String(v).trim();
   }
 
@@ -138,14 +129,13 @@ function readFormData() {
 }
 
 function isFreeEmail(email) {
-  const domain = (email.split("@")[1] || "").toLowerCase().trim();
+  const domain = (email.split("@")[
+      1] || "").toLowerCase().trim();
   return FREE_EMAIL_DOMAINS.has(domain);
 }
 
 function validateBeforeGenerate(data) {
-  // Minimal required fields for writing copy
   const errors = [];
-
   if (!data.package) errors.push("Choose a package.");
   if (!data.customerEmail) errors.push("Email is required.");
   if (!data.offer) errors.push("Offer + price is required.");
@@ -153,27 +143,12 @@ function validateBeforeGenerate(data) {
   if (!data.placement) errors.push("Placement + goal is required.");
   if (!data.constraints) errors.push("Voice + compliance constraints are required.");
   if (!data.aiDisclosure) errors.push("You must confirm the AI disclosure checkbox.");
-
-  // Optional but recommended
-  if (data.deliveryFormats.length === 0) {
-    errors.push("Choose at least one delivery format (Google Doc and/or Plain text).");
-  }
-
-  // Basic package needs deliverable selection to avoid ambiguity
-  if (data.package === "Basic" && !data.basicDeliverable) {
-    errors.push("For Basic, select which deliverable you want (LP, email, or ads).");
-  }
-
-  // Spam trap
-  if (data.hp_website) {
-    errors.push("Spam check failed (honeypot).");
-  }
-
-  // Optional B2B filter
+  if (data.deliveryFormats.length === 0) errors.push("Choose at least one delivery format (Google Doc and/or Plain text).);
+  if (data.package === "Basic" && !data.basicDeliverable) errors.push("For Basic, select which deliverable you want (LP, email, or ads).");
+  if (data.hp_website) errors.push("Spam check failed (honeypot).");
   if (data.blockFreeEmail && data.customerEmail && isFreeEmail(data.customerEmail)) {
     errors.push("Please use a company email (free email domains are blocked).");
   }
-
   return errors;
 }
 
@@ -182,7 +157,6 @@ function validateBeforeGenerate(data) {
 ---------------------------- */
 function buildMarkdown(data) {
   const safe = (s) => (s && String(s).trim().length ? String(s).trim() : "—");
-
   const deadlineLine = data.deadline ? `${data.deadline}` : "—";
   const siteLine = data.siteUrl ? data.siteUrl : "—";
 
@@ -209,7 +183,6 @@ function buildMarkdown(data) {
   };
 
   const lines = [];
-
   lines.push(`# The Compounding Copywriter — Approved Brief`);
   lines.push(``);
   lines.push(`## Package`);
@@ -291,17 +264,12 @@ function setCooldownNow() {
 /* ----------------------------
    UI Actions
 ---------------------------- */
-$$(".js-select-package").forEach(btn => {
+$$(").js-select-package").forEach(btn => {
   btn.addEventListener("click", () => setPackage(btn.dataset.select));
 });
 
 form.addEventListener("change", (e) => {
-  // Render package-specific blocks
-  if (e.target && e.target.name === "package") {
-    renderPackageBlocks();
-  }
-
-  // Turnstile site key: mount CAPTCHA when present
+  if (e.target && e.target.name === "package") renderPackageBlocks();
   if (e.target && e.target.name === "turnstileSiteKey") {
     const siteKey = String(e.target.value || "").trim();
     ensureTurnstile(siteKey);
@@ -311,7 +279,6 @@ form.addEventListener("change", (e) => {
 generateBtn.addEventListener("click", () => {
   latestAnswers = readFormData();
   const errors = validateBeforeGenerate(latestAnswers);
-
   if (errors.length) {
     markdownOut.textContent = `Fix these before generating:\n- ${errors.join("\n- ")}`;
     approveBtn.disabled = true;
@@ -320,11 +287,8 @@ generateBtn.addEventListener("click", () => {
     return;
   }
 
-  // If Turnstile site key exists but no token yet, still allow generate
-  // (token is required by your backend if you enforce it there).
   latestMarkdown = buildMarkdown(latestAnswers);
   markdownOut.textContent = latestMarkdown;
-
   approveBtn.disabled = false;
   copyBtn.disabled = false;
 });
@@ -336,7 +300,6 @@ copyBtn.addEventListener("click", async () => {
     copyBtn.textContent = "Copied!";
     setTimeout(() => (copyBtn.textContent = "Copy"), 1000);
   } catch {
-    // fallback: select text
     const range = document.createRange();
     range.selectNodeContents(markdownOut);
     const sel = window.getSelection();
@@ -349,35 +312,20 @@ copyBtn.addEventListener("click", async () => {
 
 approveBtn.addEventListener("click", () => {
   if (!latestMarkdown) return;
-
   modalPreview.textContent = latestMarkdown.slice(0, 3500) + (latestMarkdown.length > 3500 ? "\n\n…(truncated preview)" : "");
   confirmCheck.checked = false;
   sendBtn.disabled = true;
-
   openModal();
 });
 
-confirmCheck.addEventListener("change", () => {
-  sendBtn.disabled = !confirmCheck.checked;
-});
+confirmCheck.addEventListener("change", () => { sendBtn.disabled = !confirmCheck.checked; });
 
 sendBtn.addEventListener("click", async () => {
   if (!latestMarkdown || !latestAnswers) return;
-
-  if (onCooldown()) {
-    alert("Please wait a moment before sending again (cooldown active).");
-    return;
-  }
-
-  // Final spam trap
-  if (latestAnswers.hp_website) {
-    alert("Spam check failed.");
-    return;
-  }
+  if (onCooldown()) { alert("Please wait a moment before sending again (cooldown active)."); return; }
+  if (latestAnswers.hp_website) { alert("Spam check failed."); return; }
 
   setCooldownNow();
-
-  // Prefer webhook if provided
   const webhookUrl = (latestAnswers.webhookUrl || "").trim();
 
   if (webhookUrl) {
@@ -411,17 +359,15 @@ sendBtn.addEventListener("click", async () => {
       alert("Sent to webhook successfully!");
       return;
     } catch (err) {
-      // If webhook fails, fall back to mailto draft to owner
       console.warn(err);
       alert("Webhook failed. Falling back to email draft to owner.");
     }
   }
 
-  // Fallback: mailto to owner
+  // Fallback: mailto to owner (mailto body encoded safely)
   const subject = encodeURIComponent(`Approved Brief — ${latestAnswers.package || "Package"} — The Compounding Copywriter`);
-  const body = encodeURIComponent(
-    `Approved Markdown Brief:\n\n${latestMarkdown}\n\n---\nCustomer email: ${latestAnswers.customerEmail || "—"}\nDelivery format: ${(latestAnswers.deliveryFormats || []).join(" + ") || "—"}\n`
-  );
+  const mailBody = `Approved Markdown Brief:\n\n${latestMarkdown}\n\n---\nCustomer email: ${latestAnswers.customerEmail || "—"}\nDelivery format: ${(latestAnswers.deliveryFormats || []).join(" + ") || "—"}\n\nGenerated via The Compounding Copywriter.`;
+  const body = encodeURIComponent(mailBody);
   window.location.href = `mailto:${encodeURIComponent(OWNER_EMAIL)}?subject=${subject}&body=${body}`;
 
   closeModal();
@@ -431,24 +377,21 @@ sendBtn.addEventListener("click", async () => {
    Modal controls
 ---------------------------- */
 function openModal() {
+  if (!modal) return;
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
 }
 function closeModal() {
+  if (!modal) return;
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
 }
 
-modal.addEventListener("click", (e) => {
-  const close = e.target?.dataset?.close === "true";
-  if (close) closeModal();
-});
+modal.addEventListener("click", (e) => { if (e.target?.dataset?.close === "true") closeModal(); });
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
-});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.classList.contains("open")) closeModal(); });
 
 /* ----------------------------
    Init
