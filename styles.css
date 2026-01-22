@@ -51,14 +51,14 @@ strong{ font-weight:700; }
 .bg-glow{
   position:absolute; width:900px; height:900px; border-radius:999px;
   filter: blur(70px);
-  opacity:.35;
+  opacity:.22; /* reduced from .35 for improved contrast */
 }
 .glow-1{ left:-200px; top:-260px; background: radial-gradient(circle at 30% 30%, var(--grad-a), transparent 60%); }
 .glow-2{ right:-220px; bottom:-240px; background: radial-gradient(circle at 30% 30%, var(--grad-b), transparent 60%); }
 .bg-noise{
   position:absolute; inset:0;
   opacity:.08;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves[...]";
   background-size:180px 180px;
   mix-blend-mode:overlay;
 }
@@ -115,7 +115,6 @@ strong{ font-weight:700; }
   background: radial-gradient(circle at 30% 30%, var(--grad-c), var(--grad-b));
   box-shadow: 0 0 0 4px rgba(34,211,238,.12);
 }
-
 h1{
   margin:16px 0 10px;
   font-size: clamp(34px, 4.1vw, 54px);
@@ -271,7 +270,7 @@ h1{
 .bullets{ margin:12px 0 0; padding-left:18px; color:var(--muted); display:grid; gap:8px; }
 .card-actions{ margin-top:16px; }
 
-.two-col{
+two-col{
   display:grid;
   grid-template-columns: 1.05fr .95fr;
   gap:16px;
@@ -389,7 +388,7 @@ input:focus, textarea:focus, select:focus{ box-shadow: var(--focus); border-colo
 }
 .pkg-block.active{ display:block; }
 
-.details{
+t.details{
   border-radius: 16px;
   border:1px solid rgba(255,255,255,.10);
   background: rgba(255,255,255,.04);
@@ -512,3 +511,89 @@ input:focus, textarea:focus, select:focus{ box-shadow: var(--focus); border-colo
   .check-grid{ grid-template-columns:1fr; }
   .faq-grid{ grid-template-columns:1fr; }
 }
+
+/* ===== Fix: form/list overlap & readability =====
+   Appended fixes (scoped and conservative)
+================================================= */
+
+.checklist {
+  /* keep the list as a normal block — items below will be flex rows */
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+
+.checklist li {
+  display: flex;
+  align-items: center;    /* vertically center the check + text */
+  gap: 12px;              /* space between check and text */
+  padding: 8px 0;
+  line-height: 1.35;      /* comfortable spacing for wrapped lines */
+  white-space: normal;    /* avoid forced pre/nowrap behavior */
+  word-break: normal;
+}
+
+/* Make sure the check mark element is sized and won't overlap text */
+.check {
+  flex: 0 0 auto;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+/* Radio / checkbox label text — keep on one column and readable */
+.radio, .check {
+  align-items: center;  /* ensure the control + text are aligned */
+}
+
+/* Ensure label inline text is a block inside the control so it wraps naturally */
+.radio > span,
+.check > span,
+.field > span.label,
+.field > span.hint {
+  display: block;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+/* For multi-column grid forms, ensure labels can wrap normally */
+.field,
+.radio,
+.check {
+  word-break: break-word;
+}
+
+/* Make checkbox/radio inputs vertically centered inside labels */
+.radio input,
+.check input {
+  margin-top: 0.1em; /* small tweak to vertically center on some browsers */
+}
+
+/* Slightly increase form text contrast and spacing for a more professional look */
+.form,
+.card,
+.card * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* If any element has an accidental transform/position that causes stacking,
+   give form area higher stacking context so it renders above background effects */
+.form,
+.preview,
+.hero-card {
+  position: relative;
+  z-index: 2;
+}
+
+/* Optional: reduce negative letter-spacing globally in form to avoid visual overlap */
+.form, .form * {
+  letter-spacing: 0;
+}
+
+/* End of fixes */
